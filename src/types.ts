@@ -16,3 +16,14 @@ export type AppTask = {
 };
 
 export type ViewMode = 'day' | 'week' | 'month';
+
+export type ImportMessage = {
+  level: 'error' | 'warning';
+  text: string;
+};
+
+export type ImportResult = {
+  tasks: AppTask[];
+  messages: ImportMessage[];
+  invalidRowCount: number;
+};

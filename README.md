@@ -1,6 +1,6 @@
 # React + Vite + TypeScript локальный Gantt planner
 
-Приложение для импорта Excel, редактирования задач в гриде + Gantt и экспорта обратно в Excel.
+Локальное (без backend) приложение для импорта Excel, редактирования задач и экспорта обратно в Excel.
 
 ## Запуск
 
@@ -10,40 +10,41 @@ npm run dev
 npm run build
 ```
 
+## Если видите белый экран
+
+В новой версии добавлен `ErrorBoundary` и `Errors panel`. Если при импорте есть проблемы с данными, приложение **не падает**: смотрите сообщения в `Errors panel` и исправьте строки в Excel.
+
 ## Формат Excel
 
-Ожидается лист `TasksTable` c колонками:
+Ожидается лист `TasksTable` со столбцами:
 
-- `id` (string)
+- `id` (обязательный string, уникальный)
 - `phase` (string)
 - `task` (string)
-- `start` (date)
-- `end` (date)
+- `start` (date: Date / Excel serial / ISO / `dd.mm.yyyy`)
+- `end` (date: Date / Excel serial / ISO / `dd.mm.yyyy`, и `end >= start`)
 - `completion` (0..100)
 - `dependencies` (строка вида `SH-1,SH-2` без пробелов или пусто)
 - `status` (`ToDo` / `InProgress` / `Blocked` / `Done`)
-- `sp_plan` (number)
-- `sp_fact` (number)
+- `sp_plan` (number, пусто = 0)
+- `sp_fact` (number, пусто = 0)
 
-## Что умеет
+## Что реализовано
 
-- Upload `.xlsx` через SheetJS (`xlsx`).
-- Валидация: уникальность `id`, корректные даты, `end >= start`, `completion` 0..100, `status` из допустимого списка, зависимости только на существующие `id`.
-- Если есть ошибки, выводится список, приложение не падает.
+- Устойчивый рендер: Gantt отображается только когда есть валидные `safeTasks`.
+- Empty State, если валидных задач нет: “Загрузите .xlsx с листом TasksTable”.
+- Импорт через SheetJS (`cellDates: true`) + расширенная валидация.
+- Ошибки/предупреждения импорта в UI (строка/колонка), без падения.
 - KPI-карточки: SP Plan, SP Fact, Delta, Fact%.
-- Две панели: слева grid по phase (сворачиваемый), справа Gantt.
-- Цвета задач по status + легенда, отдельная подсветка overdue.
-- Zoom: day/week/month.
-- Редактирование:
-  - drag&drop/resize дат на Gantt;
-  - изменение completion на Gantt и в гриде;
-  - inline-редактирование полей в гриде;
-  - dependencies через боковую панель.
-- Добавление/удаление задач.
-- Autosave в `localStorage` после каждого изменения.
-- При старте предлагается восстановление последней сессии.
-- Download Excel c листом `TasksTable`.
+- Слева grid (группировка по `phase`, сортировка по `start`), справа Gantt.
+- Цвета задач по статусу, легенда, today line, подсветка overdue.
+- Редактирование (inline + Gantt drag/resize/progress), dependencies через боковую панель.
+- Добавление и удаление задач.
+- Autosave в `localStorage` + восстановление сессии.
+- Экспорт обратно в `.xlsx` с листом `TasksTable`.
+- Кнопка `Load sample` грузит `public/samples/sample.xlsx`.
 
-## Пример
+## Sample
 
-Тестовый файл: `samples/sample.xlsx` (текстовый CSV-совместимый пример с требуемыми колонками).
+- `public/samples/sample.xlsx` — файл для демо-импорта через UI.
+- `samples/sample.xlsx` — копия для репозитория/тестов.
