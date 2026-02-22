@@ -1,0 +1,6 @@
+id,phase,task,start,end,completion,dependencies,status,sp_plan,sp_fact
+SH-1,Discovery,Collect requirements,2026-02-01,2026-02-03,100,,Done,3,3
+SH-2,Discovery,Architecture draft,2026-02-04,2026-02-07,80,SH-1,InProgress,5,4
+SH-3,Build,Implement import/export,2026-02-08,2026-02-13,40,SH-2,InProgress,8,3
+SH-4,Build,Gantt integration,2026-02-10,2026-02-18,20,SH-2,Blocked,13,2
+SH-5,QA,Regression,2026-02-19,2026-02-22,0,SH-3,ToDo,5,0
