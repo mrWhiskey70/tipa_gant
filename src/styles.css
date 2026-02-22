@@ -13,6 +13,10 @@ body { margin: 0; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .kpi-wrap { display: flex; gap: 8px; flex-wrap: wrap; }
 .kpi-card { background: #fff; border-radius: 10px; padding: 10px 12px; border: 1px solid #e5e7eb; min-width: 140px; }
+.import-status { margin-top: 10px; background: #eff6ff; border: 1px solid #3b82f6; color: #1e3a8a; border-radius: 8px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; }
+.import-status.failed { background: #fef2f2; border-color: #ef4444; color: #7f1d1d; }
+.import-status p { margin: 4px 0 0; }
+.spinner { width: 16px; height: 16px; border: 2px solid #93c5fd; border-top-color: #1d4ed8; border-radius: 50%; animation: spin 0.8s linear infinite; margin-top: 2px; }
 .errors { background: #fff7ed; border: 1px solid #fb923c; color: #7c2d12; border-radius: 8px; padding: 8px 12px; margin-top: 10px; }
 .layout { margin-top: 12px; display: grid; grid-template-columns: 44% 42% 14%; gap: 10px; align-items: start; }
 .grid-panel,.gantt-panel,.side-panel,.empty-state,.fatal-error { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; }
@@ -27,6 +31,10 @@ td input, td select { width: 100%; }
 .selected { background: #eff6ff; }
 .today { margin-bottom: 8px; font-weight: 600; }
 .side-panel textarea, .side-panel input { width: 100%; margin-bottom: 8px; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
 @media (max-width: 1200px) {
   .layout { grid-template-columns: 1fr; }

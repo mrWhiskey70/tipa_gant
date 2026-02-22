@@ -13,6 +13,17 @@ const statusColor: Record<TaskStatus, string> = {
   Done: '#22c55e'
 };
 
+type ImportStage = 'idle' | 'reading_file' | 'parsing_excel' | 'applying_data' | 'done' | 'failed';
+
+const stageLabel: Record<ImportStage, string> = {
+  idle: 'Ожидание файла',
+  reading_file: 'Чтение файла',
+  parsing_excel: 'Парсинг и валидация Excel',
+  applying_data: 'Применение данных',
+  done: 'Готово',
+  failed: 'Ошибка импорта'
+};
+
 const emptyTask = (): AppTask => ({
   id: `NEW-${Date.now()}`,
   phase: 'New Phase',
@@ -31,6 +42,8 @@ const isTaskShapeValid = (item: unknown): item is AppTask => {
   return Boolean(candidate && typeof candidate.id === 'string' && typeof candidate.start === 'string' && typeof candidate.end === 'string');
 };
 
+const nextTick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
 export default function App() {
   const [tasks, setTasks] = useState<AppTask[]>([]);
   const [messages, setMessages] = useState<ImportMessage[]>([]);
@@ -38,6 +51,8 @@ export default function App() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [collapsedPhases, setCollapsedPhases] = useState<Record<string, boolean>>({});
   const [viewMode, setViewMode] = useState<ViewMode>('week');
+  const [importStage, setImportStage] = useState<ImportStage>('idle');
+  const [isImporting, setIsImporting] = useState(false);
   const uploadRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -131,11 +146,32 @@ export default function App() {
   };
 
   const processFile = async (file: File) => {
-    const result = await importTasksFromFile(file);
-    setTasks(result.tasks);
-    setMessages(result.messages);
-    setInvalidRowCount(result.invalidRowCount);
-    setSelectedTaskId(null);
+    try {
+      setIsImporting(true);
+      setImportStage('reading_file');
+      setMessages((prev) => prev.filter((m) => m.level === 'warning' && m.text.includes('restore')));
+      await nextTick();
+
+      setImportStage('parsing_excel');
+      const result = await importTasksFromFile(file);
+      await nextTick();
+
+      setImportStage('applying_data');
+      setTasks(result.tasks);
+      setMessages(result.messages);
+      setInvalidRowCount(result.invalidRowCount);
+      setSelectedTaskId(null);
+      setImportStage('done');
+    } catch (error) {
+      setImportStage('failed');
+      const messageText = error instanceof Error ? error.message : 'Unknown import error';
+      setMessages((prev) => [...prev, { level: 'error', text: `Import failed: ${messageText}` }]);
+    } finally {
+      setTimeout(() => {
+        setIsImporting(false);
+        setImportStage((prev) => (prev === 'failed' ? 'failed' : 'idle'));
+      }, 250);
+    }
   };
 
   const onUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -147,12 +183,21 @@ export default function App() {
 
   const loadSample = async () => {
     try {
+      setIsImporting(true);
+      setImportStage('reading_file');
+      await nextTick();
       const response = await fetch('/samples/sample.xlsx');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
       const blob = await response.blob();
       const sampleFile = new File([blob], 'sample.xlsx', { type: blob.type || 'application/octet-stream' });
       await processFile(sampleFile);
-    } catch {
-      setMessages([{ level: 'error', text: 'Could not load sample file from /samples/sample.xlsx.' }]);
+    } catch (error) {
+      setImportStage('failed');
+      const messageText = error instanceof Error ? error.message : 'Unknown sample loading error';
+      setMessages([{ level: 'error', text: `Could not load sample file from /samples/sample.xlsx: ${messageText}` }]);
+      setIsImporting(false);
     }
   };
 
@@ -162,12 +207,12 @@ export default function App() {
         <div className="actions">
           <label className="btn">
             Upload .xlsx
-            <input ref={uploadRef} type="file" accept=".xlsx,.xls" onChange={onUpload} hidden />
+            <input ref={uploadRef} type="file" accept=".xlsx,.xls" onChange={onUpload} hidden disabled={isImporting} />
           </label>
-          <button className="btn" onClick={loadSample}>Load sample</button>
-          <button className="btn" onClick={() => exportTasksToExcel(tasks)} disabled={tasks.length === 0}>Download Excel</button>
-          <button className="btn" onClick={() => setTasks((prev) => [...prev, emptyTask()])}>Add Task</button>
-          <select value={viewMode} onChange={(e) => setViewMode(e.target.value as ViewMode)}>
+          <button className="btn" onClick={loadSample} disabled={isImporting}>Load sample</button>
+          <button className="btn" onClick={() => exportTasksToExcel(tasks)} disabled={tasks.length === 0 || isImporting}>Download Excel</button>
+          <button className="btn" onClick={() => setTasks((prev) => [...prev, emptyTask()])} disabled={isImporting}>Add Task</button>
+          <select value={viewMode} onChange={(e) => setViewMode(e.target.value as ViewMode)} disabled={isImporting}>
             <option value="day">day</option>
             <option value="week">week</option>
             <option value="month">month</option>
@@ -180,6 +225,17 @@ export default function App() {
           <div className="kpi-card">Fact%: <b>{kpi.factPct.toFixed(1)}%</b></div>
         </div>
       </header>
+
+      {(isImporting || importStage === 'failed') && (
+        <section className={`import-status ${importStage === 'failed' ? 'failed' : ''}`}>
+          {isImporting && <span className="spinner" aria-hidden="true" />}
+          <div>
+            <b>Статус импорта:</b> {stageLabel[importStage]}
+            {isImporting && <p>Файл обрабатывается. Пожалуйста, подождите…</p>}
+            {importStage === 'failed' && <p>Импорт завершился с ошибкой. Подробности ниже в Errors panel.</p>}
+          </div>
+        </section>
+      )}
 
       {(messages.length > 0 || invalidRowCount > 0 || invalidFromUi > 0) && (
         <section className="errors">
@@ -197,8 +253,8 @@ export default function App() {
           <h2>Загрузите .xlsx с листом TasksTable</h2>
           <p>После успешного импорта валидные задачи появятся в таблице и на Gantt.</p>
           <div className="actions">
-            <button className="btn" onClick={() => uploadRef.current?.click()}>Upload .xlsx</button>
-            <button className="btn" onClick={loadSample}>Load sample</button>
+            <button className="btn" onClick={() => uploadRef.current?.click()} disabled={isImporting}>Upload .xlsx</button>
+            <button className="btn" onClick={loadSample} disabled={isImporting}>Load sample</button>
           </div>
         </section>
       ) : (
