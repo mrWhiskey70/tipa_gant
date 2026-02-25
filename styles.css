@@ -1,0 +1,144 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --bg: #f7f8fb;
+  --line: #d7dce4;
+  --text: #1f2a37;
+  --danger: #c81e1e;
+  --planned: #7c8aa0;
+  --in-progress: #3b82f6;
+  --done: #16a34a;
+  --blocked: #ea580c;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border-bottom: 1px solid var(--line);
+}
+
+.kpi {
+  margin-left: auto;
+  font-size: 0.875rem;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  min-height: calc(100vh - 60px);
+}
+
+.panel {
+  padding: 1rem;
+}
+
+.panel-left {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+
+.error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 0.5rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.hidden { display: none; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.4rem;
+}
+
+input, select, button {
+  font: inherit;
+}
+
+input[type="text"], input[type="date"], select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.legend {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.planned { background: var(--planned); }
+.in-progress { background: var(--in-progress); }
+.done { background: var(--done); }
+.blocked { background: var(--blocked); }
+
+.gantt {
+  position: relative;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  min-height: 500px;
+}
+
+.row {
+  position: relative;
+  border-bottom: 1px dashed #eef2f7;
+}
+
+.bar {
+  position: absolute;
+  top: 7px;
+  height: 18px;
+  border-radius: 8px;
+  color: white;
+  font-size: 12px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overdue {
+  outline: 2px solid var(--danger);
+}
+
+.today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--danger);
+  pointer-events: none;
+}
