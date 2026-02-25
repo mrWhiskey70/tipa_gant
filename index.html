@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Local Gantt MVP</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>Gantt MVP</h1>
+      <div id="kpi" class="kpi"></div>
+      <div class="controls">
+        <label for="zoom">Zoom</label>
+        <input id="zoom" type="range" min="16" max="48" value="24" step="4" />
+        <button id="addTaskBtn" type="button">+ Add task</button>
+        <button id="resetBtn" type="button">Reset demo data</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel panel-left">
+        <h2>Tasks</h2>
+        <div id="error" class="error hidden" role="alert"></div>
+        <table id="taskTable">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="taskRows"></tbody>
+        </table>
+      </section>
+
+      <section class="panel panel-right">
+        <div class="legend">
+          <span><i class="swatch planned"></i> Planned</span>
+          <span><i class="swatch in-progress"></i> In progress</span>
+          <span><i class="swatch done"></i> Done</span>
+          <span><i class="swatch blocked"></i> Blocked</span>
+        </div>
+        <div id="gantt" class="gantt"></div>
+      </section>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
